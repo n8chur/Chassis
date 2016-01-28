@@ -86,20 +86,20 @@ def createProject(name, organization_name, bundle_identifier_prefix)
   framework_target.build_settings('Debug')['INFOPLIST_FILE'] = info_plist_destination_path
   framework_target.build_settings('Release')['INFOPLIST_FILE'] = info_plist_destination_path
 
-  test_info_plist_destination_path = tests_target.name + '/' + info_plist_filename
-  copyFileWithTemplate(templates_directory + 'InfoTests.plist', test_info_plist_destination_path, info_plist_vars)
+  tests_info_plist_destination_path = tests_target.name + '/' + info_plist_filename
+  copyFileWithTemplate(templates_directory + 'InfoTests.plist', tests_info_plist_destination_path, info_plist_vars)
   group_tests_supporting_files.new_file(info_plist_filename)
-  tests_target.build_settings('Debug')['INFOPLIST_FILE'] = test_info_plist_destination_path
-  tests_target.build_settings('Release')['INFOPLIST_FILE'] = test_info_plist_destination_path
+  tests_target.build_settings('Debug')['INFOPLIST_FILE'] = tests_info_plist_destination_path
+  tests_target.build_settings('Release')['INFOPLIST_FILE'] = tests_info_plist_destination_path
 
   # Add https://github.com/jspahrsummers/xcconfigs config files
   framework_config_destination_path = framework_target.name + '/' + framework_target.name + '.xcconfig'
   copyFileWithTemplate(templates_directory + 'Framework.xcconfig', framework_config_destination_path, template_variables)
 
   tests_config_destination_path = tests_target.name + '/' + tests_target.name + '.xcconfig'
-  test_template_variables = template_variables
-  test_template_variables[:TESTS_TARGET_NAME] = tests_target.name
-  copyFileWithTemplate(templates_directory + 'FrameworkTests.xcconfig', tests_config_destination_path, test_template_variables)
+  tests_template_variables = template_variables
+  tests_template_variables[:TESTS_TARGET_NAME] = tests_target.name
+  copyFileWithTemplate(templates_directory + 'FrameworkTests.xcconfig', tests_config_destination_path, tests_template_variables)
 
   framework_config = group_config.new_file(framework_config_destination_path)
   tests_config = group_config.new_file(tests_config_destination_path)
