@@ -5,9 +5,9 @@ task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix]
   bundle_identifier_prefix = args.bundle_identifier_prefix
 
   task_format = '"generate[:framework_name, :organization_name, :bundle_identifier_prefix]"'
+
   if !name
     abort("Missing framework_name ()#{task_format})")
-    return
   end
 
   if !organization_name
@@ -21,6 +21,7 @@ task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix]
   if Dir.exists?(name)
     abort("Directory '#{name}' already exists")
   end
+
   require 'fileutils'
 
   FileUtils.mkdir(name)
@@ -42,11 +43,11 @@ def createProject(name, organization_name, bundle_identifier_prefix)
 
   # Create targets
   framework_target = proj.new_target(:framework, name, :ios, '9.0')
-  test_target = createTestTarget(proj, framework_target)
+  tests_target = createTestTarget(proj, framework_target)
 
   # Create directories
   FileUtils.mkdir(framework_target.name)
-  FileUtils.mkdir(test_target.name)
+  FileUtils.mkdir(tests_target.name)
 
   # Setup dependencies
   templates_directory = '../Templates/'
@@ -57,8 +58,8 @@ def createProject(name, organization_name, bundle_identifier_prefix)
   group_framework = proj.new_group(framework_target.name)
   group_framework.set_path(framework_target.name)
   group_framework_supporting_files = group_framework.new_group('Supporting Files')
-  group_tests = proj.new_group(test_target.name)
-  group_tests.set_path(test_target.name)
+  group_tests = proj.new_group(tests_target.name)
+  group_tests.set_path(tests_target.name)
   group_tests_supporting_files = group_tests.new_group('Supporting Files')
   group_config = proj.new_group('Configuration')
   group_base = group_config.new_group('Base')
@@ -75,8 +76,8 @@ def createProject(name, organization_name, bundle_identifier_prefix)
     :YEAR => `date +"%Y"`.delete!("\n")
   }
   umbrella_header_filename = framework_target.name + '.h'
-  umbrealla_header_path = framework_target.name + '/' + umbrella_header_filename
-  copyFileWithTemplate(templates_directory + 'Framework.h', umbrealla_header_path, template_variables)
+  umbrella_header_destination_path = framework_target.name + '/' + umbrella_header_filename
+  copyFileWithTemplate(templates_directory + 'Framework.h', umbrella_header_destination_path, template_variables)
   umbrella_header_file = group_framework.new_file(umbrella_header_filename)
   framework_target.add_file_references([umbrella_header_file])
 
@@ -87,30 +88,30 @@ def createProject(name, organization_name, bundle_identifier_prefix)
 
   # Add Info.plist files
   info_plist_filename = 'Info.plist'
-  info_plist_path = framework_target.name + '/' + info_plist_filename
+  info_plist_destination_path = framework_target.name + '/' + info_plist_filename
   info_plist_vars = {:BUNDLE_IDENTIFIER_PREFIX => bundle_identifier_prefix}
-  copyFileWithTemplate(templates_directory + info_plist_filename, info_plist_path, info_plist_vars)
+  copyFileWithTemplate(templates_directory + info_plist_filename, info_plist_destination_path, info_plist_vars)
   group_framework_supporting_files.new_file(info_plist_filename)
-  framework_target.build_settings('Debug')['INFOPLIST_FILE'] = info_plist_path
-  framework_target.build_settings('Release')['INFOPLIST_FILE'] = info_plist_path
+  framework_target.build_settings('Debug')['INFOPLIST_FILE'] = info_plist_destination_path
+  framework_target.build_settings('Release')['INFOPLIST_FILE'] = info_plist_destination_path
 
-  test_info_plist_path = test_target.name + '/' + info_plist_filename
-  copyFileWithTemplate(templates_directory + 'InfoTests.plist', test_info_plist_path, info_plist_vars)
+  test_info_plist_destination_path = tests_target.name + '/' + info_plist_filename
+  copyFileWithTemplate(templates_directory + 'InfoTests.plist', test_info_plist_destination_path, info_plist_vars)
   group_tests_supporting_files.new_file(info_plist_filename)
-  test_target.build_settings('Debug')['INFOPLIST_FILE'] = test_info_plist_path
-  test_target.build_settings('Release')['INFOPLIST_FILE'] = test_info_plist_path
+  tests_target.build_settings('Debug')['INFOPLIST_FILE'] = test_info_plist_destination_path
+  tests_target.build_settings('Release')['INFOPLIST_FILE'] = test_info_plist_destination_path
 
   # Add https://github.com/jspahrsummers/xcconfigs config files
-  framework_config_path = framework_target.name + '/' + framework_target.name + '.xcconfig'
-  copyFileWithTemplate(templates_directory + 'Framework.xcconfig', framework_config_path, template_variables)
+  framework_config_destination_path = framework_target.name + '/' + framework_target.name + '.xcconfig'
+  copyFileWithTemplate(templates_directory + 'Framework.xcconfig', framework_config_destination_path, template_variables)
 
-  tests_config_path = test_target.name + '/' + test_target.name + '.xcconfig'
+  tests_config_destination_path = tests_target.name + '/' + tests_target.name + '.xcconfig'
   test_template_variables = template_variables
-  test_template_variables[:TESTS_TARGET_NAME] = test_target.name
-  copyFileWithTemplate(templates_directory + 'FrameworkTests.xcconfig', tests_config_path, test_template_variables)
+  test_template_variables[:TESTS_TARGET_NAME] = tests_target.name
+  copyFileWithTemplate(templates_directory + 'FrameworkTests.xcconfig', tests_config_destination_path, test_template_variables)
 
-  framework_config = group_config.new_file(framework_config_path)
-  tests_config = group_config.new_file(tests_config_path)
+  framework_config = group_config.new_file(framework_config_destination_path)
+  tests_config = group_config.new_file(tests_config_destination_path)
 
   configs_path = 'Carthage/Checkouts/xcconfigs/'
   group_base.new_file(configs_path + 'Base/Common.xcconfig')
@@ -133,8 +134,8 @@ def createProject(name, organization_name, bundle_identifier_prefix)
   framework_target.build_configuration_list['Debug'].base_configuration_reference =  framework_config
   framework_target.build_configuration_list['Release'].base_configuration_reference =  framework_config
 
-  test_target.build_configuration_list['Debug'].base_configuration_reference =  tests_config
-  test_target.build_configuration_list['Release'].base_configuration_reference =  tests_config
+  tests_target.build_configuration_list['Debug'].base_configuration_reference =  tests_config
+  tests_target.build_configuration_list['Release'].base_configuration_reference =  tests_config
 
   proj.save
 end
@@ -148,23 +149,23 @@ end
 
 # See https://groups.google.com/forum/#!topic/cocoapods/feDhJjLWu48
 def createTestTarget(proj, framework_target)
-  test_target = proj.new(Xcodeproj::Project::PBXNativeTarget)
-  proj.targets << test_target
-  test_target.name = framework_target.name + 'Tests'
-  test_target.product_name = test_target.name
-  test_target.product_type = 'com.apple.product-type.bundle.unit-test'
-  test_target.build_configuration_list = Xcodeproj::Project::ProjectHelper.configuration_list(proj, :ios, '9.0')
+  tests_target = proj.new(Xcodeproj::Project::PBXNativeTarget)
+  proj.targets << tests_target
+  tests_target.name = framework_target.name + 'Tests'
+  tests_target.product_name = tests_target.name
+  tests_target.product_type = 'com.apple.product-type.bundle.unit-test'
+  tests_target.build_configuration_list = Xcodeproj::Project::ProjectHelper.configuration_list(proj, :ios, '9.0')
 
-	product_ref = proj.products_group.new_reference(test_target.name + '.xctest', :built_products)
+	product_ref = proj.products_group.new_reference(tests_target.name + '.xctest', :built_products)
 	product_ref.include_in_index = '0'
 	product_ref.set_explicit_file_type
-	test_target.product_reference = product_ref
+	tests_target.product_reference = product_ref
 
-	test_target.build_phases << proj.new(Xcodeproj::Project::PBXSourcesBuildPhase)
-	test_target.build_phases << proj.new(Xcodeproj::Project::PBXFrameworksBuildPhase)
-	test_target.build_phases << proj.new(Xcodeproj::Project::PBXResourcesBuildPhase)
+	tests_target.build_phases << proj.new(Xcodeproj::Project::PBXSourcesBuildPhase)
+	tests_target.build_phases << proj.new(Xcodeproj::Project::PBXFrameworksBuildPhase)
+	tests_target.build_phases << proj.new(Xcodeproj::Project::PBXResourcesBuildPhase)
 
-	test_target.add_dependency(framework_target)
+	tests_target.add_dependency(framework_target)
 
-  return test_target
+  return tests_target
 end
