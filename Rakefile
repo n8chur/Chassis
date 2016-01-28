@@ -1,28 +1,19 @@
 task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix] do |t, args|
 
+  require 'fileutils'
+
   name = args.framework_name
   organization_name = args.organization_name
   bundle_identifier_prefix = args.bundle_identifier_prefix
 
   task_format = '"generate[:framework_name, :organization_name, :bundle_identifier_prefix]"'
-
-  if !name
-    abort("Missing framework_name ()#{task_format})")
-  end
-
-  if !organization_name
-    abort("Missing organization_name (#{task_format})")
-  end
-
-  if !bundle_identifier_prefix
-    abort("Missing bundle_identifier_prefix (e.g. com.company) #{task_format}")
-  end
+  abort("Missing framework_name ()#{task_format})") if !name
+  abort("Missing organization_name (#{task_format})") if !organization_name
+  abort("Missing bundle_identifier_prefix (e.g. com.company) #{task_format}") if !bundle_identifier_prefix
 
   if Dir.exists?(name)
     abort("Directory '#{name}' already exists")
   end
-
-  require 'fileutils'
 
   FileUtils.mkdir(name)
 
