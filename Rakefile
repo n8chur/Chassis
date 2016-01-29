@@ -126,10 +126,10 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   proj.save
 end
 
-def copy_files_with_template(source_path, desintation_path, template_variables)
+def copy_files_with_template(source_path, destination_path, template_variables)
   source_file_contents = File.read(source_path)
   new_contents = source_file_contents % template_variables
-  destination_file = File.open(desintation_path, 'w')
+  destination_file = File.open(destination_path, 'w')
   destination_file.write(new_contents)
 end
 
