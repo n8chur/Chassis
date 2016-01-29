@@ -1,7 +1,7 @@
+require 'fileutils'
+require 'xcodeproj'
+
 task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix] do |t, args|
-
-  require 'fileutils'
-
   name = args.framework_name
   organization_name = args.organization_name
   bundle_identifier_prefix = args.bundle_identifier_prefix
@@ -25,9 +25,6 @@ end
 private
 
 def createProject(name, organization_name, bundle_identifier_prefix)
-
-  require 'xcodeproj'
-
   # Create project
   proj = Xcodeproj::Project.new(name + '.xcodeproj')
   proj.root_object.attributes['ORGANIZATIONNAME'] = organization_name
