@@ -123,6 +123,19 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   tests_target.build_configuration_list['Debug'].base_configuration_reference = tests_config
   tests_target.build_configuration_list['Release'].base_configuration_reference = tests_config
 
+  # Clear out build settings
+  proj.build_configuration_list.build_configurations.each do |c|
+    c.build_settings.clear
+  end
+
+  framework_target.build_configuration_list.build_configurations.each do |c|
+    c.build_settings.clear
+  end
+
+  tests_target.build_configuration_list.build_configurations.each do |c|
+    c.build_settings.clear
+  end
+
   proj.save
 end
 
