@@ -7,7 +7,7 @@ task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix]
   bundle_identifier_prefix = args.bundle_identifier_prefix
 
   task_format = '"generate[:framework_name, :organization_name, :bundle_identifier_prefix]"'
-  abort("Missing framework_name ()#{task_format})") unless name
+  abort("Missing framework_name (#{task_format})") unless name
   abort("Missing organization_name (#{task_format})") unless organization_name
   abort("Missing bundle_identifier_prefix (e.g. com.company) #{task_format}") unless bundle_identifier_prefix
 
