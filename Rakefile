@@ -44,6 +44,9 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   FileUtils.cp(templates_directory + 'Cartfile.private', 'Cartfile.private')
   sh('carthage bootstrap')
 
+  # Add .gitignore
+  FileUtils.cp(templates_directory + '.gitignore', '.gitignore')
+
   # Create groups
   group_framework = proj.new_group(framework_target.name)
   group_framework.set_path(framework_target.name)
