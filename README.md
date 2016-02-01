@@ -6,12 +6,10 @@ Chassis generates iOS framework projects that leverage [jspahrsummers/xcconfigs]
 Dependencies
 ------------
 
-[Xcodeproj](https://github.com/CocoaPods/Xcodeproj)
------------
+### [Xcodeproj](https://github.com/CocoaPods/Xcodeproj)
 `$ [sudo] gem install xcodeproj`
 
-[Carthage](https://github.com/Carthage/Carthage)
-----------
+### [Carthage](https://github.com/Carthage/Carthage)
 `$ brew install carthage`
 
 Usage
