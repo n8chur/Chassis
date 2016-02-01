@@ -1,7 +1,11 @@
 require 'fileutils'
 require 'xcodeproj'
+require 'English'
 
 task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix] do |_t, args|
+  `which carthage`
+  abort('Carthage not installed') unless $CHILD_STATUS.success?
+
   name = args.framework_name
   organization_name = args.organization_name
   bundle_identifier_prefix = args.bundle_identifier_prefix
