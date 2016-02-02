@@ -143,6 +143,12 @@ def create_project(name, organization_name, bundle_identifier_prefix)
     c.build_settings.clear
   end
 
+  # Share scheme
+  proj.recreate_user_schemes
+  Xcodeproj::Project.schemes(proj.path).each do |scheme|
+    Xcodeproj::XCScheme.share_scheme(proj.path, scheme) if scheme == name
+  end
+
   proj.save
 end
 
