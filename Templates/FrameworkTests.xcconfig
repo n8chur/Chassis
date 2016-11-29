@@ -8,6 +8,7 @@
 
 #include "../Carthage/Checkouts/xcconfigs/iOS/iOS-Application.xcconfig"
 
+// Code will load on this and later versions of iOS.  Framework APIs that are
 // unavailable in earlier versions will be weak-linked; your code should check
 // for null function pointers or specific system versions before calling newer
 // APIs.
@@ -16,6 +17,9 @@ IPHONEOS_DEPLOYMENT_TARGET = 9.0
 // This is the project-relative path to the plist file that contains the
 // Info.plist information used by bundles.
 INFOPLIST_FILE = $(TARGET_NAME)/Info.plist
+
+// A string that uniquely identifies the bundle
+PRODUCT_BUNDLE_IDENTIFIER = %{BUNDLE_IDENTIFIER_PREFIX}.$(PRODUCT_NAME:rfc1034identifier)
 
 // This is the basename of the product generated.
 PRODUCT_NAME = $(TARGET_NAME)
