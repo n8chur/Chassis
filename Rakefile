@@ -66,7 +66,8 @@ def create_project(name, organization_name, bundle_identifier_prefix)
     DEVELOPER_NAME: `git config --get user.name`.delete!("\n"),
     ORGANIZATION: organization_name,
     DATE: `date +"%m/%d/%y"`.delete!("\n"),
-    YEAR: `date +"%Y"`.delete!("\n")
+    YEAR: `date +"%Y"`.delete!("\n"),
+    BUNDLE_IDENTIFIER_PREFIX: bundle_identifier_prefix
   }
   umbrella_header_filename = framework_target.name + '.h'
   umbrella_header_destination_path = framework_target.name + '/' + umbrella_header_filename
@@ -82,7 +83,7 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   # Add Info.plist files
   info_plist_filename = 'Info.plist'
   info_plist_destination_path = framework_target.name + '/' + info_plist_filename
-  info_plist_vars = { BUNDLE_IDENTIFIER_PREFIX: bundle_identifier_prefix }
+  info_plist_vars = {}
   copy_files_with_template(templates_directory + info_plist_filename, info_plist_destination_path, info_plist_vars)
   group_framework_supporting_files.new_file(info_plist_filename)
   framework_target.build_settings('Debug')['INFOPLIST_FILE'] = info_plist_destination_path
