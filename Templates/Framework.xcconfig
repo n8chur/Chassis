@@ -42,8 +42,3 @@ VERSIONING_SYSTEM = apple-generic
 // Determines the compatibility version of the resulting library, bundle, or
 // framework binary.
 DYLIB_COMPATIBILITY_VERSION = 1
-
-// When enabled, this causes the compiler and linker to disallow use of APIs
-// that are not available to app extensions and to disallow linking to
-// frameworks that have not been built with this setting enabled.
-APPLICATION_EXTENSION_API_ONLY = NO
