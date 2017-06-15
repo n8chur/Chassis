@@ -14,10 +14,10 @@ Dependencies
 
 Usage
 -----
-When given a _framework_name_, _organization_name_, and _bundle_id_prefix_, Chassis will generate a folder with the same name as the _framework_name_ and populate it with the iOS framework project.
+When given a _framework_name_, _organization_name_, _bundle_id_prefix_, and optionally an _output_dir_ (defaults to _framework_name_) Chassis will populate the _output_dir_ with the iOS framework project.
 
 ### Syntax
-`:generate, [:framework_name, :organization_name, :bundle_id_prefix]`
+`:generate, [:framework_name, :organization_name, :bundle_id_prefix, :output_dir]`
 
 ### Example
-`rake "generate[MyFramework, MyOrganization, com.myorganization]"`
+`rake "generate[MyFramework, MyOrganization, com.myorganization, /Some/Folder]"`

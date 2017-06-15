@@ -2,13 +2,17 @@ require 'fileutils'
 require 'xcodeproj'
 require 'English'
 
-task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix] do |_t, args|
+task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix, :output_dir] do |_t, args|
   `which carthage`
   abort('Carthage not installed') unless $CHILD_STATUS.success?
 
   name = args.framework_name
+
+  args.with_defaults(output_dir: Dir.pwd + '/' + name)
+
   organization_name = args.organization_name
   bundle_identifier_prefix = args.bundle_identifier_prefix
+  output_dir = args.output_dir
 
   task_format = '"generate[:framework_name, :organization_name, :bundle_identifier_prefix]"'
   abort("Missing framework_name (#{task_format})") unless name
@@ -17,16 +21,18 @@ task :generate, [:framework_name, :organization_name, :bundle_identifier_prefix]
 
   abort("Directory '#{name}' already exists") if Dir.exist?(name)
 
-  FileUtils.mkdir(name)
+  Dir.mkdir(output_dir) unless File.exists?(output_dir)
 
-  Dir.chdir(Dir.pwd + '/' + name) do
-    create_project(name, organization_name, bundle_identifier_prefix)
+  templates_dir = Dir.pwd + '/Templates/'
+
+  Dir.chdir(output_dir) do
+    create_project(name, organization_name, bundle_identifier_prefix, templates_dir)
   end
 end
 
 private
 
-def create_project(name, organization_name, bundle_identifier_prefix)
+def create_project(name, organization_name, bundle_identifier_prefix, templates_dir)
   # Create project
   proj = Xcodeproj::Project.new(name + '.xcodeproj')
   proj.root_object.attributes['ORGANIZATIONNAME'] = organization_name
@@ -40,12 +46,11 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   FileUtils.mkdir(tests_target.name)
 
   # Setup dependencies
-  templates_directory = '../Templates/'
-  FileUtils.cp(templates_directory + 'Cartfile.private', 'Cartfile.private')
+  FileUtils.cp(templates_dir + 'Cartfile.private', 'Cartfile.private')
   sh('carthage bootstrap')
 
   # Add .gitignore
-  FileUtils.cp(templates_directory + '.gitignore', '.gitignore')
+  FileUtils.cp(templates_dir + '.gitignore', '.gitignore')
 
   # Create groups
   group_framework = proj.new_group(framework_target.name)
@@ -71,11 +76,11 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   }
   umbrella_header_filename = framework_target.name + '.h'
   umbrella_header_destination_path = framework_target.name + '/' + umbrella_header_filename
-  copy_files_with_template(templates_directory + 'Framework.h', umbrella_header_destination_path, template_variables)
+  copy_files_with_template(templates_dir + 'Framework.h', umbrella_header_destination_path, template_variables)
   umbrella_header_file = group_framework.new_file(umbrella_header_filename)
   framework_target.add_file_references([umbrella_header_file])
 
-  # make umbrella header public
+  # Make umbrella header public
   umbrella_header_file.build_files.each do |file|
     file.settings = { 'ATTRIBUTES' => ['Public'] }
   end
@@ -84,25 +89,25 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   info_plist_filename = 'Info.plist'
   info_plist_destination_path = framework_target.name + '/' + info_plist_filename
   info_plist_vars = {}
-  copy_files_with_template(templates_directory + info_plist_filename, info_plist_destination_path, info_plist_vars)
+  copy_files_with_template(templates_dir + info_plist_filename, info_plist_destination_path, info_plist_vars)
   group_framework_supporting_files.new_file(info_plist_filename)
   framework_target.build_settings('Debug')['INFOPLIST_FILE'] = info_plist_destination_path
   framework_target.build_settings('Release')['INFOPLIST_FILE'] = info_plist_destination_path
 
   tests_info_plist_destination_path = tests_target.name + '/' + info_plist_filename
-  copy_files_with_template(templates_directory + 'InfoTests.plist', tests_info_plist_destination_path, info_plist_vars)
+  copy_files_with_template(templates_dir + 'InfoTests.plist', tests_info_plist_destination_path, info_plist_vars)
   group_tests_supporting_files.new_file(info_plist_filename)
   tests_target.build_settings('Debug')['INFOPLIST_FILE'] = tests_info_plist_destination_path
   tests_target.build_settings('Release')['INFOPLIST_FILE'] = tests_info_plist_destination_path
 
   # Add https://github.com/jspahrsummers/xcconfigs config files
   framework_config_destination_path = framework_target.name + '/' + framework_target.name + '.xcconfig'
-  copy_files_with_template(templates_directory + 'Framework.xcconfig', framework_config_destination_path, template_variables)
+  copy_files_with_template(templates_dir + 'Framework.xcconfig', framework_config_destination_path, template_variables)
 
   tests_config_destination_path = tests_target.name + '/' + tests_target.name + '.xcconfig'
   tests_template_variables = template_variables
   tests_template_variables[:TESTS_TARGET_NAME] = tests_target.name
-  copy_files_with_template(templates_directory + 'FrameworkTests.xcconfig', tests_config_destination_path, tests_template_variables)
+  copy_files_with_template(templates_dir + 'FrameworkTests.xcconfig', tests_config_destination_path, tests_template_variables)
 
   framework_config = group_config.new_file(framework_config_destination_path)
   tests_config = group_config.new_file(tests_config_destination_path)
@@ -147,7 +152,9 @@ def create_project(name, organization_name, bundle_identifier_prefix)
   # Share scheme
   proj.recreate_user_schemes
   Xcodeproj::Project.schemes(proj.path).each do |scheme|
-    Xcodeproj::XCScheme.share_scheme(proj.path, scheme) if scheme == name
+    if scheme == name
+      Xcodeproj::XCScheme.share_scheme(proj.path, scheme)
+    end
   end
 
   proj.save
